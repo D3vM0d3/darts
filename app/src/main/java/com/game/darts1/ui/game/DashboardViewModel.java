@@ -1,4 +1,4 @@
-package com.game.darts1.ui.dashboard;
+package com.game.darts1.ui.game;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

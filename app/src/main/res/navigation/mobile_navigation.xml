@@ -12,10 +12,10 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.game.darts1.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_newgame"
+        android:name="com.game.darts1.ui.game.NewGameFragment"
+        android:label="@string/title_newgame"
+        tools:layout="@layout/fragment_newgame" />
 
     <fragment
         android:id="@+id/navigation_notifications"

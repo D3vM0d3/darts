@@ -1,18 +1,23 @@
 package com.game.darts1.ui.home;
 
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -28,9 +33,13 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-        homeViewModel =
-                ViewModelProviders.of(this).get(HomeViewModel.class);
+        MainActivity activity = (MainActivity) getActivity();
+        if(activity.getHomeViewModel() == null) {
+            homeViewModel =
+                    ViewModelProviders.of(this).get(HomeViewModel.class);
+        }else{
+            homeViewModel = activity.getHomeViewModel();
+        }
 
         final View root = inflater.inflate(R.layout.fragment_home, container, false);
         View view = root.findViewById(R.id.dart_table_box);
@@ -39,53 +48,136 @@ public class HomeFragment extends Fragment {
 
         setListeners(root);
 
-        final TextView d1 = root.findViewById(R.id.dart1_value);
-        d1.setOnClickListener(new View.OnClickListener() {
+        //select active dart
+        final TextView p1d1 = root.findViewById(R.id.p1_dart1);
+        p1d1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                homeViewModel.setDartNumber(1);
-                homeViewModel.setDart2Value(null);
-                homeViewModel.setDart3Value(null);
-                calculatePoints();
-            }
-        });
-        final TextView d2 = root.findViewById(R.id.dart2_value);
-        d2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(homeViewModel.getDart1Value().getValue() != null) {
-                    homeViewModel.setDartNumber(2);
-                    homeViewModel.setDart3Value(null);
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 1){
+                    homeViewModel.getPlayer1().setDartNumber(1);
+                    homeViewModel.getPlayer1().setDart2(null);
+                    homeViewModel.getPlayer1().setDart3(null);
                     calculatePoints();
                 }
             }
         });
-        final TextView d3 = root.findViewById(R.id.dart3_value);
-        d3.setOnClickListener(new View.OnClickListener() {
+        final TextView p1d2 = root.findViewById(R.id.p1_dart2);
+        p1d2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(homeViewModel.getDart2Value().getValue() != null) {
-                    homeViewModel.setDartNumber(3);
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 1 && homeViewModel.getPlayer1().getDart1().getValue() != null){
+                    homeViewModel.getPlayer1().setDartNumber(2);
+                    homeViewModel.getPlayer1().setDart3(null);
+                    calculatePoints();
+                }
+            }
+        });
+        final TextView p1d3 = root.findViewById(R.id.p1_dart3);
+        p1d3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 1 && homeViewModel.getPlayer1().getDart2().getValue() != null){
+                    homeViewModel.getPlayer1().setDartNumber(3);
+                    calculatePoints();
                 }
             }
         });
 
-        homeViewModel.getDartNumber().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+        final TextView p2d1 = root.findViewById(R.id.p2_dart1);
+        p2d1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 2){
+                    homeViewModel.getPlayer2().setDartNumber(1);
+                    homeViewModel.getPlayer2().setDart2(null);
+                    homeViewModel.getPlayer2().setDart3(null);
+                    calculatePoints();
+                }
+            }
+        });
+        final TextView p2d2 = root.findViewById(R.id.p2_dart2);
+        p2d2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 2 && homeViewModel.getPlayer2().getDart1().getValue() != null){
+                    homeViewModel.getPlayer2().setDartNumber(2);
+                    homeViewModel.getPlayer2().setDart3(null);
+                    calculatePoints();
+                }
+            }
+        });
+        final TextView p2d3 = root.findViewById(R.id.p2_dart3);
+        p2d3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 2 && homeViewModel.getPlayer2().getDart2().getValue() != null){
+                    homeViewModel.getPlayer2().setDartNumber(3);
+                    calculatePoints();
+                }
+            }
+        });
+
+        homeViewModel.getPlayer1().getDartNumber().observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(@Nullable Integer s) {
-                d1.setBackgroundColor(Color.parseColor("#ffffff"));
-                d2.setBackgroundColor(Color.parseColor("#ffffff"));
-                d3.setBackgroundColor(Color.parseColor("#ffffff"));
-                switch (s){
-                    case 1:
-                        d1.setBackgroundColor(Color.parseColor("#A1B8C8"));
-                        break;
-                    case 2:
-                        d2.setBackgroundColor(Color.parseColor("#A1B8C8"));
-                        break;
-                    case 3:
-                        d3.setBackgroundColor(Color.parseColor("#A1B8C8"));
-                        break;
+                p1d1.setBackgroundColor(0);
+                p1d2.setBackgroundColor(0);
+                p1d3.setBackgroundColor(0);
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 1){
+                    switch (s){
+                        case 1:
+                            p1d1.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                        case 2:
+                            p1d2.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                        case 3:
+                            p1d3.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                    }
+                }
+            }
+        });
+
+        homeViewModel.getPlayer2().getDartNumber().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(@Nullable Integer s) {
+                p2d1.setBackgroundColor(0);
+                p2d2.setBackgroundColor(0);
+                p2d3.setBackgroundColor(0);
+                if(homeViewModel.getCurrentPlayerNumber().getValue() == 2) {
+                    switch (s) {
+                        case 1:
+                            p2d1.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                        case 2:
+                            p2d2.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                        case 3:
+                            p2d3.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedDart));
+                            break;
+                    }
+                }
+            }
+        });
+
+        homeViewModel.getCurrentPlayerNumber().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(@Nullable Integer s) {
+                ImageView p1Indicator = root.findViewById(R.id.p1_indicator);
+                ImageView p2Indicator = root.findViewById(R.id.p2_indicator);
+                View p1 = root.findViewById(R.id.player1);
+                View p2 = root.findViewById(R.id.player2);
+                p1.setBackgroundColor(0);
+                p2.setBackgroundColor(0);
+                if(s == 1){
+                    p1Indicator.setVisibility(View.VISIBLE);
+                    p2Indicator.setVisibility(View.INVISIBLE);
+                    p1.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedPlayer));
+                }else{
+                    p1Indicator.setVisibility(View.INVISIBLE);
+                    p2Indicator.setVisibility(View.VISIBLE);
+                    p2.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.colorSelectedPlayer));
                 }
             }
         });
@@ -100,36 +192,49 @@ public class HomeFragment extends Fragment {
 
         startNewGame();
 
+        if(!homeViewModel.isStarted()){
+            //PopupWindow pw = new PopupWindow(inflater.inflate(R.layout.newgame_popup, null, false),100,100, true);
+
+            //pw.showAtLocation(root, Gravity.CENTER, 0, 0);
+
+        }
+
         return root;
     }
 
     private void setListeners(View root){
-        final TextView player1Name = root.findViewById(R.id.player1);
-        homeViewModel.getPlayer1().observe(getViewLifecycleOwner(), new Observer<String>() {
+        final TextView player1Name = root.findViewById(R.id.p1_name);
+        homeViewModel.getPlayer1().getName().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 player1Name.setText(s);
             }
         });
 
-        final TextView player2Name = root.findViewById(R.id.player2);
-        homeViewModel.getPlayer2().observe(getViewLifecycleOwner(), new Observer<String>() {
+
+        final TextView player2Name = root.findViewById(R.id.p2_name);
+        homeViewModel.getPlayer2().getName().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 player2Name.setText(s);
             }
         });
 
-        setObserver(root, R.id.player1_score, homeViewModel.getPlayer1Score());
-        setObserver(root, R.id.player2_score, homeViewModel.getPlayer2Score());
-        setObserver(root, R.id.player1_points, homeViewModel.getPlayer1Points());
-        setObserver(root, R.id.player2_points, homeViewModel.getPlayer2Points());
-        setObserver(root, R.id.round, homeViewModel.getRound());
-        setScoreObserver(root, R.id.dart1_value, homeViewModel.getDart1Value());
-        setScoreObserver(root, R.id.dart2_value, homeViewModel.getDart2Value());
-        setScoreObserver(root, R.id.dart3_value, homeViewModel.getDart3Value());
 
-        final TextView currentPlayer = root.findViewById(R.id.current_player_name);
+        setObserver(root, R.id.player1_score, homeViewModel.getPlayer1().getScore());
+        setObserver(root, R.id.player2_score, homeViewModel.getPlayer2().getScore());
+        setObserver(root, R.id.player1_points, homeViewModel.getPlayer1().getPoints());
+        setObserver(root, R.id.player2_points, homeViewModel.getPlayer2().getPoints());
+        setObserver(root, R.id.round, homeViewModel.getRound());
+        setScoreObserver(root, R.id.p1_dart1, homeViewModel.getPlayer1().getDart1());
+        setScoreObserver(root, R.id.p1_dart2, homeViewModel.getPlayer1().getDart2());
+        setScoreObserver(root, R.id.p1_dart3, homeViewModel.getPlayer1().getDart3());
+        setScoreObserver(root, R.id.p2_dart1, homeViewModel.getPlayer2().getDart1());
+        setScoreObserver(root, R.id.p2_dart2, homeViewModel.getPlayer2().getDart2());
+        setScoreObserver(root, R.id.p2_dart3, homeViewModel.getPlayer2().getDart3());
+
+
+        /*final TextView currentPlayer = root.findViewById(R.id.current_player_name);
         homeViewModel.getCurrentPlayer().observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(@Nullable Integer s) {
@@ -140,6 +245,8 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+
+         */
     }
 
     private void setObserver(View root, int id, MutableLiveData<Integer> mutable){
@@ -166,36 +273,38 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    //Table touch listener
+    //Table touch listener, throw dart
     private void onTouchListener(View view){
         view.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if(!homeViewModel.isStarted()){
+                        return true;
+                    }
                     int x = (int) event.getX();
                     int y = (int) event.getY();
 
                     Point target = new Point(x, y);
                     Point center = new Point(v.getWidth() / 2, v.getHeight() / 2);
 
-                    double distance = getDistance(target, center);
                     Score score = getScore(center, target);
-                    switch (homeViewModel.getDartNumber().getValue()){
+                    switch (homeViewModel.getCurrentPlayer().getDartNumber().getValue()){
                         case 1:
-                            homeViewModel.setDart1Value(score);
+                            homeViewModel.getCurrentPlayer().setDart1(score);
                             break;
                         case 2:
-                            homeViewModel.setDart2Value(score);
+                            homeViewModel.getCurrentPlayer().setDart2(score);
                             break;
                         case 3:
-                            homeViewModel.setDart3Value(score);
+                            homeViewModel.getCurrentPlayer().setDart3(score);
                             break;
                     }
 
                     calculatePoints();
+                    homeViewModel.getCurrentPlayer().setDartNumber(homeViewModel.getCurrentPlayer().getDartNumber().getValue() + 1);
 
-                    homeViewModel.setDartNumber(homeViewModel.getDartNumber().getValue() + 1);
                     //Log.d("SCORE", String.format("%.0f %dx%d", distance, score.getMultiplier(), score.getTotalScore()));
 
                     //View dart1 = v.findViewById(R.id.dart1);
@@ -300,81 +409,84 @@ public class HomeFragment extends Fragment {
     }
 
     private void startNewGame(){
-        homeViewModel.setPlayer1("Player 1");
-        homeViewModel.setPlayer2("Player 2");
-        homeViewModel.setPlayer1Score(0);
-        homeViewModel.setPlayer1Score(0);
-        homeViewModel.setCurrentPlayer(1);
-        startNewRound();
+        homeViewModel.getPlayer1().setScore(0);
+        homeViewModel.getPlayer2().setScore(0);
+        homeViewModel.setCurrentPlayerNumber(1);
+        startNewLeg();
     }
 
     private void startNewRound(){
-        homeViewModel.setPlayer1StartPoints(501);
-        homeViewModel.setPlayer2StartPoints(501);
-        homeViewModel.setPlayer1Points(501);
-        homeViewModel.setPlayer2Points(501);
-        homeViewModel.setRound(1);
+        homeViewModel.getPlayer1().setStartPoints(homeViewModel.getPlayer1().getPoints().getValue());
+        homeViewModel.getPlayer2().setStartPoints(homeViewModel.getPlayer2().getPoints().getValue());
+        homeViewModel.setRound(homeViewModel.getRound().getValue() + 1);
+        int scores = homeViewModel.getPlayer1().getScore().getValue() + homeViewModel.getPlayer2().getScore().getValue();
+        homeViewModel.setCurrentPlayerNumber((scores % 2) + 1);
+
         resetDarts();
     }
 
+    private void startNewLeg(){
+        homeViewModel.getPlayer1().setPoints(501);
+        homeViewModel.getPlayer2().setPoints(501);
+        homeViewModel.setRound(0);
+        startNewRound();
+    }
+
     private void resetDarts(){
-        homeViewModel.setDart1Value(null);
-        homeViewModel.setDart2Value(null);
-        homeViewModel.setDart3Value(null);
-        homeViewModel.setDartNumber(1);
+        homeViewModel.getPlayer1().setDart1(null);
+        homeViewModel.getPlayer1().setDart2(null);
+        homeViewModel.getPlayer1().setDart3(null);
+        homeViewModel.getPlayer1().setDartNumber(1);
+        homeViewModel.getPlayer2().setDart1(null);
+        homeViewModel.getPlayer2().setDart2(null);
+        homeViewModel.getPlayer2().setDart3(null);
+        homeViewModel.getPlayer2().setDartNumber(1);
     }
 
     private void switchPlayer(){
-        if(homeViewModel.getCurrentPlayer().getValue() == 1){
-            homeViewModel.setPlayer1StartPoints(homeViewModel.getPlayer1Points().getValue());
-            homeViewModel.setCurrentPlayer(2);
-            resetDarts();
+        Player player = homeViewModel.getCurrentPlayer();
+        if(player.getLastDart() == null){
+            return;
+        }
+        if(player.getPoints().getValue() == 0){
+            if(player.getLastDart().getMultiplier() == 2){
+                //win
+                player.setScore(player.getScore().getValue() + 1);
+                startNewLeg();
+                return;
+            }
+        }
+
+        if(player.getPoints().getValue() <= 1){
+            player.setPoints(player.getStartPoints());
+        }
+
+        //new round
+        if(homeViewModel.getPlayer1().getDart1().getValue() != null && homeViewModel.getPlayer2().getDart1().getValue() != null){
+            startNewRound();
         }else{
-            homeViewModel.setPlayer2StartPoints(homeViewModel.getPlayer2Points().getValue());
-            homeViewModel.setCurrentPlayer(1);
-            resetDarts();
+            homeViewModel.switchPlayer();
         }
     }
 
     private void calculatePoints(){
-        if(homeViewModel.getCurrentPlayer().getValue() == 1){
-            int score = homeViewModel.getPlayer1StartPoints();
-            switch (homeViewModel.getDartNumber().getValue()){
+            int score = homeViewModel.getCurrentPlayer().getStartPoints();
+            switch (homeViewModel.getCurrentPlayer().getDartNumber().getValue()){
                 case 1:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer1Points(score);
+                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
+                    homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
                 case 2:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart2Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer1Points(score);
+                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
+                    score -= homeViewModel.getCurrentPlayer().getDart2().getValue().getTotalScore();
+                    homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
                 case 3:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart2Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart3Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer1Points(score);
+                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
+                    score -= homeViewModel.getCurrentPlayer().getDart2().getValue().getTotalScore();
+                    score -= homeViewModel.getCurrentPlayer().getDart3().getValue().getTotalScore();
+                    homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
             }
-        }else{
-            int score = homeViewModel.getPlayer2StartPoints();
-            switch (homeViewModel.getDartNumber().getValue()){
-                case 1:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer2Points(score);
-                    break;
-                case 2:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart2Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer2Points(score);
-                    break;
-                case 3:
-                    score -= homeViewModel.getDart1Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart2Value().getValue().getTotalScore();
-                    score -= homeViewModel.getDart3Value().getValue().getTotalScore();
-                    homeViewModel.setPlayer2Points(score);
-                    break;
-            }
-        }
     }
 }

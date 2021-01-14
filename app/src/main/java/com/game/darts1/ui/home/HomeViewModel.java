@@ -6,67 +6,26 @@ import androidx.lifecycle.ViewModel;
 
 public class HomeViewModel extends ViewModel {
 
-    private MutableLiveData<String> player1;
-    private MutableLiveData<String> player2;
-    private MutableLiveData<Integer> player1Points;
-    private MutableLiveData<Integer> player2Points;
-    private MutableLiveData<Integer> player1Score;
-    private MutableLiveData<Integer> player2Score;
+    private Player player1;
+    private Player player2;
     private MutableLiveData<Integer> round;
-    private MutableLiveData<Integer> currentPlayer;
-    private MutableLiveData<Integer> dartNumber;
-    private MutableLiveData<Score> dart1Value;
-    private MutableLiveData<Score> dart2Value;
-    private MutableLiveData<Score> dart3Value;
-    private int player1StartPoints;
-    private int player2StartPoints;
+    private MutableLiveData<Integer> currentPlayerNumber;
+    private boolean started;
 
-    public MutableLiveData<String> getPlayer1() {
+    public Player getPlayer1() {
         return player1;
     }
 
-    public void setPlayer1(String player1) {
-        this.player1.setValue(player1);
+    public void setPlayer1(Player player1) {
+        this.player1 = player1;
     }
 
-    public MutableLiveData<String> getPlayer2() {
+    public Player getPlayer2() {
         return player2;
     }
 
-    public void setPlayer2(String player2) {
-        this.player2.setValue(player2);
-    }
-
-    public MutableLiveData<Integer> getPlayer1Points() {
-        return player1Points;
-    }
-
-    public void setPlayer1Points(int player1Points) {
-        this.player1Points.setValue(player1Points);
-    }
-
-    public MutableLiveData<Integer> getPlayer2Points() {
-        return player2Points;
-    }
-
-    public void setPlayer2Points(int player2Points) {
-        this.player2Points.setValue(player2Points);
-    }
-
-    public MutableLiveData<Integer> getPlayer1Score() {
-        return player1Score;
-    }
-
-    public void setPlayer1Score(int player1Score) {
-        this.player1Score.setValue(player1Score);
-    }
-
-    public MutableLiveData<Integer> getPlayer2Score() {
-        return player2Score;
-    }
-
-    public void setPlayer2Score(int player2Score) {
-        this.player2Score.setValue(player2Score);
+    public void setPlayer2(Player player2) {
+        this.player2 = player2;
     }
 
     public MutableLiveData<Integer> getRound() {
@@ -77,86 +36,51 @@ public class HomeViewModel extends ViewModel {
         this.round.setValue(round);
     }
 
-    public MutableLiveData<Integer> getCurrentPlayer() {
-        return currentPlayer;
+    public MutableLiveData<Integer> getCurrentPlayerNumber() {
+        return currentPlayerNumber;
     }
 
-    public void setCurrentPlayer(int currentPlayer) {
-        this.currentPlayer.setValue(currentPlayer);
+    public void setCurrentPlayerNumber(int currentPlayer) {
+        this.currentPlayerNumber.setValue(currentPlayer);
     }
 
-    public MutableLiveData<Integer> getDartNumber() {
-        return dartNumber;
+    public Player getCurrentPlayer(){
+        if(currentPlayerNumber.getValue() == 1){
+            return player1;
+        }
+        return player2;
     }
 
-    public void setDartNumber(int dartNumber) {
-        this.dartNumber.setValue(dartNumber);
+    public boolean isStarted() {
+        return started;
     }
 
-    public MutableLiveData<Score> getDart1Value() {
-        return dart1Value;
-    }
-
-    public void setDart1Value(Score dart1Value) {
-        this.dart1Value.setValue(dart1Value);
-    }
-
-    public MutableLiveData<Score> getDart2Value() {
-        return dart2Value;
-    }
-
-    public void setDart2Value(Score dart2Value) {
-        this.dart2Value.setValue(dart2Value);
-    }
-
-    public MutableLiveData<Score> getDart3Value() {
-        return dart3Value;
-    }
-
-    public void setDart3Value(Score dart3Value) {
-        this.dart3Value.setValue(dart3Value);
-    }
-
-    public int getPlayer1StartPoints() {
-        return player1StartPoints;
-    }
-
-    public void setPlayer1StartPoints(int player1StartPoints) {
-        this.player1StartPoints = player1StartPoints;
-    }
-
-    public int getPlayer2StartPoints() {
-        return player2StartPoints;
-    }
-
-    public void setPlayer2StartPoints(int player2StartPoints) {
-        this.player2StartPoints = player2StartPoints;
+    public void setStarted(boolean started) {
+        this.started = started;
     }
 
     public HomeViewModel() {
-        player1 = new MutableLiveData<>();
-        player1.setValue("Player1");
-        player2 = new MutableLiveData<>();
-        player2.setValue("Player2");
-        player1Points = new MutableLiveData<>();
-        player1Points.setValue(501);
-        player2Points = new MutableLiveData<>();
-        player2Points.setValue(501);
-        player1Score = new MutableLiveData<>();
-        player1Score.setValue(0);
-        player2Score = new MutableLiveData<>();
-        player2Score.setValue(0);
+        player1 = new Player();
+        player1.setName("Player1");
+        player2 = new Player();
+        player2.setName("Player2");
         round = new MutableLiveData<>();
-        round.setValue(1);
-        currentPlayer = new MutableLiveData<>();
-        currentPlayer.setValue(1);
-        dartNumber = new MutableLiveData<>();
-        dartNumber.setValue(1);
-        dart1Value = new MutableLiveData<>();
-        dart1Value.setValue(null);
-        dart2Value = new MutableLiveData<>();
-        dart2Value.setValue(null);
-        dart3Value = new MutableLiveData<>();
-        dart3Value.setValue(null);
+        round.setValue(0);
+        currentPlayerNumber = new MutableLiveData<>();
+        currentPlayerNumber.setValue(1);
+    }
+
+    public void switchPlayer(){
+        if(getCurrentPlayerNumber().getValue() == 1){
+            getCurrentPlayerNumber().setValue(2);
+        }else{
+            getCurrentPlayerNumber().setValue(1);
+        }
+    }
+
+    public void startNewGame(String p1, String p2){
+        setStarted(true);
+        player1.setName(p1);
+        player2.setName(p2);
     }
 }
