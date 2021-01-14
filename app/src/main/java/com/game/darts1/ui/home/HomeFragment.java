@@ -1,17 +1,16 @@
 package com.game.darts1.ui.home;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
+import android.content.DialogInterface;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -25,6 +24,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.game.darts1.MainActivity;
 import com.game.darts1.R;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeFragment extends Fragment {
 
@@ -37,12 +37,13 @@ public class HomeFragment extends Fragment {
         if(activity.getHomeViewModel() == null) {
             homeViewModel =
                     ViewModelProviders.of(this).get(HomeViewModel.class);
+            activity.setHomeViewModel(homeViewModel);
         }else{
             homeViewModel = activity.getHomeViewModel();
         }
 
         final View root = inflater.inflate(R.layout.fragment_home, container, false);
-        View view = root.findViewById(R.id.dart_table_box);
+        View view = root.findViewById(R.id.table_image);
         dartTableBox = view;
         onTouchListener(view);
 
@@ -190,13 +191,17 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        startNewGame();
-
         if(!homeViewModel.isStarted()){
-            //PopupWindow pw = new PopupWindow(inflater.inflate(R.layout.newgame_popup, null, false),100,100, true);
-
-            //pw.showAtLocation(root, Gravity.CENTER, 0, 0);
-
+            AlertDialog.Builder dlg = new AlertDialog.Builder(getContext());
+            dlg.setTitle(getResources().getString(R.string.title_newgame));
+            dlg.setPositiveButton(getResources().getString(R.string.start_button), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    BottomNavigationView nav = getActivity().findViewById(R.id.nav_view);
+                    nav.setSelectedItemId(R.id.navigation_newgame);
+                }
+            });
+            dlg.setCancelable(false);
+            dlg.show();
         }
 
         return root;
@@ -232,21 +237,6 @@ public class HomeFragment extends Fragment {
         setScoreObserver(root, R.id.p2_dart1, homeViewModel.getPlayer2().getDart1());
         setScoreObserver(root, R.id.p2_dart2, homeViewModel.getPlayer2().getDart2());
         setScoreObserver(root, R.id.p2_dart3, homeViewModel.getPlayer2().getDart3());
-
-
-        /*final TextView currentPlayer = root.findViewById(R.id.current_player_name);
-        homeViewModel.getCurrentPlayer().observe(getViewLifecycleOwner(), new Observer<Integer>() {
-            @Override
-            public void onChanged(@Nullable Integer s) {
-                if(s == 1){
-                    currentPlayer.setText(homeViewModel.getPlayer1().getValue());
-                }else{
-                    currentPlayer.setText(homeViewModel.getPlayer2().getValue());
-                }
-            }
-        });
-
-         */
     }
 
     private void setObserver(View root, int id, MutableLiveData<Integer> mutable){
@@ -287,9 +277,10 @@ public class HomeFragment extends Fragment {
                     int y = (int) event.getY();
 
                     Point target = new Point(x, y);
-                    Point center = new Point(v.getWidth() / 2, v.getHeight() / 2);
+                    Point center = getCenter(v);
 
                     Score score = getScore(center, target);
+                    score.setPosition(target);
                     switch (homeViewModel.getCurrentPlayer().getDartNumber().getValue()){
                         case 1:
                             homeViewModel.getCurrentPlayer().setDart1(score);
@@ -304,23 +295,67 @@ public class HomeFragment extends Fragment {
 
                     calculatePoints();
                     homeViewModel.getCurrentPlayer().setDartNumber(homeViewModel.getCurrentPlayer().getDartNumber().getValue() + 1);
-
-                    //Log.d("SCORE", String.format("%.0f %dx%d", distance, score.getMultiplier(), score.getTotalScore()));
-
-                    //View dart1 = v.findViewById(R.id.dart1);
-                    //dart1.setVisibility(View.VISIBLE);
-                    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.WRAP_CONTENT,
-                            RelativeLayout.LayoutParams.WRAP_CONTENT
-                    );
-                    //params.setMargins(target.x - dart1.getWidth() / 2, target.y - dart1.getHeight() / 2, 0, 0);
-                    //dart1.setLayoutParams(params);
-
-
+                    showDarts();
                 }
                 return true;
             }
         });
+    }
+
+    private void showDarts(){
+        View v = getActivity().findViewById(R.id.table_box);
+        View d1 = getActivity().findViewById(R.id.img_dart1);
+        View d2 = getActivity().findViewById(R.id.img_dart2);
+        View d3 = getActivity().findViewById(R.id.img_dart3);
+        Point center = getCenter(v);
+        showDart(d1, center, homeViewModel.getCurrentPlayer().getDart1().getValue());
+        showDart(d2, center, homeViewModel.getCurrentPlayer().getDart2().getValue());
+        showDart(d3, center, homeViewModel.getCurrentPlayer().getDart3().getValue());
+    }
+
+    private void showDart(View dart, Point center, Score score){
+        int[] angles = new int[]{18, 144, 180, 54, 342, 90, 216, 252, 306, 108, 270, 324, 72, 288, 126, 234, 162, 36, 198, 0};
+        double x = 0;
+        double y = 0;
+        if(score != null){
+            dart.setVisibility(View.VISIBLE);
+            if(score.getValue() <= 20 && score.getValue() > 0) {
+                double angle = Math.toRadians(angles[score.getValue() - 1]);
+                double length = 0;
+                if(score.getRing() < 6){
+                    length = (getRingRadius()[score.getRing()] + getRingRadius()[score.getRing() - 1]) / 2;
+                }
+                x = center.x + Math.sin(angle) * length;
+                y = center.y -  Math.cos(angle) * length;
+            }else if(score.getTotalScore() == 25) {
+                x = score.getPosition().x;
+                y = score.getPosition().y;
+
+                double d = getDistance(center, new Point((int)x, (int)y));
+                double r = getRingRadius()[0] + getRingRadius()[0] / 2;
+                Point px = new Point((int)x - center.x, (int)y - center.y);
+                if(d > r) {
+                    x = px.x / (d / r) + center.x;
+                    y = px.y / (d / r) + center.y;
+                }
+            }else{
+                    x = score.getPosition().x;
+                    y = score.getPosition().y;
+                }
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins((int) x - dart.getWidth() / 2, (int) y - dart.getHeight(), 0, 0);
+            dart.setLayoutParams(params);
+        }else{
+            dart.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private Point getCenter(View v){
+        return new Point(v.getWidth() / 2, v.getHeight() / 2);
     }
 
     private Score getScore(Point c, Point p){
@@ -338,11 +373,11 @@ public class HomeFragment extends Fragment {
         int multiplier = 1;
         switch (ring){
             case 0:
-                return new Score(2, 25);
+                return new Score(2, 25, 0);
             case 1:
-                return new Score(1, 25);
+                return new Score(1, 25, 1);
             case 6:
-                return new Score(0, 0);
+                return new Score(0, 0, 6);
             case 3:
                 multiplier = 3;
                 break;
@@ -351,7 +386,7 @@ public class HomeFragment extends Fragment {
                 break;
         }
 
-        return new Score(multiplier, getSlice(c, p));
+        return new Score(multiplier, getSlice(c, p), ring);
     }
 
     private int getSlice(Point c, Point p){
@@ -395,52 +430,11 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-       /* HomeViewModel model = ((MainActivity) getActivity()).getHomeViewModel();
-        if(model != null){
-            homeViewModel.setText(model.getText().getValue());
-        }*/
     }
 
     @Override
     public void onDestroyView(){
         super.onDestroyView();
-        //save fragment data on main activity
-        ((MainActivity) getActivity()).setHomeViewModel(homeViewModel);
-    }
-
-    private void startNewGame(){
-        homeViewModel.getPlayer1().setScore(0);
-        homeViewModel.getPlayer2().setScore(0);
-        homeViewModel.setCurrentPlayerNumber(1);
-        startNewLeg();
-    }
-
-    private void startNewRound(){
-        homeViewModel.getPlayer1().setStartPoints(homeViewModel.getPlayer1().getPoints().getValue());
-        homeViewModel.getPlayer2().setStartPoints(homeViewModel.getPlayer2().getPoints().getValue());
-        homeViewModel.setRound(homeViewModel.getRound().getValue() + 1);
-        int scores = homeViewModel.getPlayer1().getScore().getValue() + homeViewModel.getPlayer2().getScore().getValue();
-        homeViewModel.setCurrentPlayerNumber((scores % 2) + 1);
-
-        resetDarts();
-    }
-
-    private void startNewLeg(){
-        homeViewModel.getPlayer1().setPoints(501);
-        homeViewModel.getPlayer2().setPoints(501);
-        homeViewModel.setRound(0);
-        startNewRound();
-    }
-
-    private void resetDarts(){
-        homeViewModel.getPlayer1().setDart1(null);
-        homeViewModel.getPlayer1().setDart2(null);
-        homeViewModel.getPlayer1().setDart3(null);
-        homeViewModel.getPlayer1().setDartNumber(1);
-        homeViewModel.getPlayer2().setDart1(null);
-        homeViewModel.getPlayer2().setDart2(null);
-        homeViewModel.getPlayer2().setDart3(null);
-        homeViewModel.getPlayer2().setDartNumber(1);
     }
 
     private void switchPlayer(){
@@ -452,7 +446,8 @@ public class HomeFragment extends Fragment {
             if(player.getLastDart().getMultiplier() == 2){
                 //win
                 player.setScore(player.getScore().getValue() + 1);
-                startNewLeg();
+                homeViewModel.startNewLeg();
+                showDarts();
                 return;
             }
         }
@@ -463,30 +458,38 @@ public class HomeFragment extends Fragment {
 
         //new round
         if(homeViewModel.getPlayer1().getDart1().getValue() != null && homeViewModel.getPlayer2().getDart1().getValue() != null){
-            startNewRound();
+            homeViewModel.startNewRound();
         }else{
             homeViewModel.switchPlayer();
         }
+        showDarts();
     }
 
     private void calculatePoints(){
             int score = homeViewModel.getCurrentPlayer().getStartPoints();
             switch (homeViewModel.getCurrentPlayer().getDartNumber().getValue()){
                 case 1:
-                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart1().getValue());
                     homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
                 case 2:
-                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
-                    score -= homeViewModel.getCurrentPlayer().getDart2().getValue().getTotalScore();
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart1().getValue());
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart2().getValue());
                     homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
                 case 3:
-                    score -= homeViewModel.getCurrentPlayer().getDart1().getValue().getTotalScore();
-                    score -= homeViewModel.getCurrentPlayer().getDart2().getValue().getTotalScore();
-                    score -= homeViewModel.getCurrentPlayer().getDart3().getValue().getTotalScore();
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart1().getValue());
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart2().getValue());
+                    score -= getTotalScore(homeViewModel.getCurrentPlayer().getDart3().getValue());
                     homeViewModel.getCurrentPlayer().setPoints(score);
                     break;
             }
+    }
+
+    private int getTotalScore(Score score){
+        if(score != null){
+            return score.getTotalScore();
+        }
+        return 0;
     }
 }
