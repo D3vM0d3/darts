@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.game.darts1.ui.db.Database;
+
 public class HomeViewModel extends ViewModel {
 
     private Player player1;
@@ -11,6 +13,16 @@ public class HomeViewModel extends ViewModel {
     private MutableLiveData<Integer> round;
     private MutableLiveData<Integer> currentPlayerNumber;
     private boolean started;
+    private Database db;
+    private int gameId;
+
+    public Database getDb() {
+        return db;
+    }
+
+    public int getGameId() {
+        return gameId;
+    }
 
     public Player getPlayer1() {
         return player1;
@@ -72,6 +84,7 @@ public class HomeViewModel extends ViewModel {
         player2.setStartPoints(501);
         currentPlayerNumber = new MutableLiveData<>();
         currentPlayerNumber.setValue(1);
+        db = new Database();
     }
 
     public void switchPlayer(){
@@ -92,6 +105,7 @@ public class HomeViewModel extends ViewModel {
         getPlayer2().setScore(0);
         setCurrentPlayerNumber(1);
         startNewLeg();
+        gameId = db.addGame(player1.getName().getValue(), player2.getName().getValue());
     }
 
     public void startNewRound(){
@@ -100,7 +114,14 @@ public class HomeViewModel extends ViewModel {
         setRound(getRound().getValue() + 1);
         int scores = getPlayer1().getScore().getValue() + getPlayer2().getScore().getValue();
         setCurrentPlayerNumber((scores % 2) + 1);
-
+        db.addDarts(gameId, round.getValue(), new Score[]{
+                player1.getDart1().getValue(),
+                player1.getDart2().getValue(),
+                player1.getDart3().getValue(),
+                player2.getDart1().getValue(),
+                player2.getDart2().getValue(),
+                player2.getDart3().getValue(),
+        }, player1.getPoints().getValue(), player2.getPoints().getValue());
         resetDarts();
     }
 
@@ -120,5 +141,9 @@ public class HomeViewModel extends ViewModel {
         getPlayer2().setDart2(null);
         getPlayer2().setDart3(null);
         getPlayer2().setDartNumber(1);
+    }
+
+    public void updateGame(){
+        db.updateGame(gameId, player1.getScore().getValue(), player2.getScore().getValue());
     }
 }

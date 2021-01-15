@@ -5,4 +5,6 @@
     <color name="colorAccent">#03DAC5</color>
     <color name="colorSelectedDart">#A1B8C8</color>
     <color name="colorSelectedPlayer">#CAC4C4</color>
+    <color name="colorDouble">#f0f2b3</color>
+    <color name="colorTriple">#b3f2c9</color>
 </resources>

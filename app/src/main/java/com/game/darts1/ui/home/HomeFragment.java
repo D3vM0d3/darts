@@ -1,6 +1,7 @@
 package com.game.darts1.ui.home;
 
 import android.app.AlertDialog;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.game.darts1.MainActivity;
 import com.game.darts1.R;
+import com.game.darts1.ui.db.Database;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeFragment extends Fragment {
@@ -200,9 +202,12 @@ public class HomeFragment extends Fragment {
                     nav.setSelectedItemId(R.id.navigation_newgame);
                 }
             });
-            dlg.setCancelable(false);
+            //dlg.setCancelable(false);
+            dlg.setNegativeButton("Cancel", null);
             dlg.show();
         }
+
+        homeViewModel.getDb().connect(ContextCompat.getDataDir(getContext()).toString());
 
         return root;
     }
@@ -446,6 +451,7 @@ public class HomeFragment extends Fragment {
             if(player.getLastDart().getMultiplier() == 2){
                 //win
                 player.setScore(player.getScore().getValue() + 1);
+                homeViewModel.updateGame();
                 homeViewModel.startNewLeg();
                 showDarts();
                 return;
